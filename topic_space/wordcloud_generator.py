@@ -12,7 +12,8 @@ from wordcloud import WordCloud
 import bokeh.plotting as plt
 
 
-FONT_PATH = "/Users/aterrel/Library/Fonts/DejaVuSans.ttf"
+FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "DejaVuSans.ttf")
 DATA_FILE = "msr-data.json"
 STOPWORD_FILE = "stopwords_wordnet.txt"
 
@@ -170,7 +171,7 @@ def create_Kane_csv(df):
     CSV Columns:
     title, abstract, url, year, author
     """
-    
+
     df.to_csv("msr_data.csv", columns=["title", "abstract", "url", "year", "authors"], encoding="utf-8")
 
 
@@ -248,7 +249,10 @@ def main_court_minus_lsa_words():
     doc = " ".join(processed_texts)
     generate_word_cloud_image(doc, "output/court_doc.jpg")
 
+def test_wordcloud():
+    generate_word_cloud_image("ABC ABC ABD ABD", "test.jpg")
 
 if __name__ == "__main__":
     #main_example()
-    pass
+    test_wordcloud()
+    #pass
