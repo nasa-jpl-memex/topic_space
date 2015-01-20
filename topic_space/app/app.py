@@ -19,9 +19,9 @@ def hello_world():
 @app.route('/wordcloud/', methods=["GET", "POST"])
 def wordcloud():
     #    import pdb; pdb.set_trace()
-    year1 = request.values['year1']
-    year2 = request.values['year2']
-    stop_words = request.values['words'].split(',')
+    year1 = request.values.get('year1','1980')
+    year2 = request.values.get('year2', '2014')
+    stop_words = map(lambda x: x.strip(), request.values.get('words','').replace(',', '\n').split('\n'))
     for k, v in request.values.iteritems():
         print(k, v)
     return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words)
