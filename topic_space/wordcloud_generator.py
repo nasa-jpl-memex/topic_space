@@ -14,7 +14,7 @@ import bokeh.plotting as plt
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
-DATA_FILE = "msr-data.json"
+DATA_FILE = "mrs-data.json"
 STOPWORD_FILE = "stopwords_wordnet.txt"
 
 
@@ -80,10 +80,12 @@ def generate_annual_wordclouds(df, field):
         wordclouds.append((year, WordCloud(font_path=FONT_PATH).generate(abstract)))
     return wordclouds
 
+def get_word_cloud_image():
+    wordcloud = WordCloud(font_path=FONT_PATH).generate(text)
+    return wordcloud.to_image()
 
 def generate_word_cloud_image(text, filename="output/wordcloud.jpg"):
-    wordcloud = WordCloud(font_path=FONT_PATH).generate(text)
-    wordcloud.to_image().save(filename, "JPEG")
+    get_word_cloud_image().save(filename, "JPEG")
 
 
 def generate_annual_wordcloud_images(df, field):
@@ -193,7 +195,7 @@ def main_example():
     #p = bokeh_lsa(year, lsa_df)
     return
 
-def main_msr_wordclouds():
+def get_docs_by_year():
     #df = read_file()
     df = read_sample(100)
     lsas = get_lsa_by_year(df)
@@ -206,7 +208,13 @@ def main_msr_wordclouds():
         processed_texts = " ".join([w for w in text.split() if w in lsa_terms])
         doc_dicts.append({"year": year, "lsa_abs": processed_texts})
     doc_df = pd.DataFrame(doc_dicts)
+    return doc_df
+
+
+
+def main_msr_wordclouds():
     make_output_dir("output/lsa_abs")
+    doc_df = get_docs_by_year()
     for row, (abs, year) in doc_df.iterrows():
         generate_word_cloud_image(abs, "output/lsa_abs/"+year+".jpg")
 
