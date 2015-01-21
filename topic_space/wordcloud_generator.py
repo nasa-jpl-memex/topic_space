@@ -80,7 +80,7 @@ def generate_annual_wordclouds(df, field):
         wordclouds.append((year, WordCloud(font_path=FONT_PATH).generate(abstract)))
     return wordclouds
 
-def get_word_cloud_image():
+def get_word_cloud_image(text):
     wordcloud = WordCloud(font_path=FONT_PATH).generate(text)
     return wordcloud.to_image()
 
@@ -262,5 +262,5 @@ def test_wordcloud():
 
 if __name__ == "__main__":
     #main_example()
-    test_wordcloud()
-    #pass
+    #test_wordcloud()
+    pass
