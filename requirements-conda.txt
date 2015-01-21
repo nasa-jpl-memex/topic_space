@@ -1,8 +1,0 @@
-flask
-cython
-scipy
-pillow
-numpy
-pandas
-gensim
-bokeh
