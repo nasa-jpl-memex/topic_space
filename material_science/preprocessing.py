@@ -52,7 +52,7 @@ class CorpusMSAbstractsSimple(object):
                 for word in gensim.utils.tokenize(text, lower=True)
                 if word not in STOPWORDS]
 
-corpus_simple = CorpusMSAbstractsSimple('material_science/data/msr-data')
+#corpus_simple = CorpusMSAbstractsSimple('material_science/data/msr-data')
 
 
 def best_ngrams(words, top_n=10000, min_freq=50):
@@ -126,7 +126,7 @@ class CorpusMSAbstracts_Collocations(object):
         for message in iter_material_science_abstracts(self.fname):
             yield self.tokenize(message)
 
-collocations_corpus = CorpusMSAbstracts_Collocations('material_science/data/msr-data')
+#collocations_corpus = CorpusMSAbstracts_Collocations('material_science/data/msr-data')
 
 
 def head(stream, n=10):
@@ -201,7 +201,7 @@ class CorpusMSAbstracts_NER(object):
             result.append(token)
         return result
 
-corpus_ner_only = CorpusMSAbstracts_NER('material_science/data/msr-data')
+#corpus_ner_only = CorpusMSAbstracts_NER('material_science/data/msr-data')
 
 
 class CorpusMSAbstracts(object):
