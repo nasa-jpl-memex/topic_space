@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 """
 Draw a termite plot to visualize topics and words from an LDA.
 """
@@ -6,41 +7,58 @@ from into import into
 
 import pandas as pd
 import bokeh.plotting as plt
-import numpy as np
+from bokeh.models.sources import ColumnDataSource
 
-t = blz.Data('material_science/output/simple_termite.csv')
-df = pd.read_csv('material_science/output/simple_termite.csv')
 
-# size proportional to result in Karan's example 0-10 range.
-MAX =  t.weight.max()
-MIN = t.weight.min()
+class Termite(object):
 
-# Create a size variable to define the size of the the circle for the plot.
-#t = blz.transform(t, size=np.sqrt((t.weight - MIN)/(MAX - MIN))*50)
+    """
+    A Bokeh Termite Visualization for LDA results analysis.
 
-data = t
+    Parameters
+    ----------
+    input_file: string
+        A csv file from an LDA output containing columns "word", "topic" and "weight".
+    title: string
+        The title for your termite plot
+    >>> termite = Termite("/data/lda.csv", "My lda results")# doctest: +SKIP
+    """
 
-WORDS = data['word'].distinct()
-WORDS = into(list, WORDS)
+    def __init__(self, input_file, title):
+        self.input_file = input_file
+        self.title = title
 
-topics = data['topic'].distinct()
-topics = into(list, topics)
+    def plot(self):
+        t = blz.Data(self.input_file)
+        df = pd.read_csv(self.input_file)
 
-TOPICS =[]
-for topic in topics:
-    TOPICS.append(str(topic))
+        MAX =  blz.compute(t.weight.max())
+        MIN = blz.compute(t.weight.min())
 
-plt.output_file('termite.html')
+        # Create a size variable to define the size of the the circle for the plot.
+        t = blz.transform(t, size=blz.sqrt((t.weight - MIN)/(MAX - MIN))*50)
 
-source = pd.DataFrame(df)
+        WORDS = t['word'].distinct()
+        WORDS = into(list, WORDS)
+        topics = t['topic'].distinct()
+        topics = into(list, topics)
+        # Convert topics to strings
+        TOPICS = [str(i) for i in topics]
 
-source['weight'] = source['weight'] * 1000
-data_source = plt.ColumnDataSource(source)
+        source = into(pd.DataFrame, t)
 
-p = plt.figure(x_range=TOPICS, y_range=WORDS,
-       plot_width=1000, plot_height=1700,
-       title="Termite Plot", tools='resize, save')
+        plt.output_file('termite.html')
 
-p.circle(x="topic", y="word", size="weight", fill_alpha=0.6, source=data_source)
-#p.xaxis().major_label_orientation = np.pi/3
-plt.show(p)
+        data_source = ColumnDataSource(source)
+
+        p = plt.figure(x_range=TOPICS, y_range=WORDS,
+               plot_width=1000, plot_height=1700,
+               title=self.title)
+
+        p.circle(x="topic", y="word", size="size", fill_alpha=0.6, source=data_source)
+        #p.xaxis().major_label_orientation = np.pi/3
+        plt.show(p)
+
+if __name__ == "__main__":
+    termite = Termite('material_science/models/simple_termite.csv', "Simple tokens - LDA Model")
+    termite_plot = termite.plot()

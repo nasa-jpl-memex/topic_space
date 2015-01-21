@@ -40,16 +40,18 @@ def head(stream, n=10):
     return list(itertools.islice(stream, n))
 
 
-MSR_DATA = 'material_science/data/msr-data'
+if __name__ == "__main__":
 
-corpus_simple = CorpusMSAbstractsSimple(MSR_DATA)
-corpus_simple_bow = corpus_bow(corpus_simple, MSR_DATA, 'simple')
+    MSR_DATA = 'material_science/data/msr-data'
 
-corpus_collocations = CorpusMSAbstracts_Collocations(MSR_DATA)
-corpus_collocations_bow = corpus_bow(corpus_collocations, MSR_DATA, 'collocations')
+    corpus_simple = CorpusMSAbstractsSimple(MSR_DATA)
+    corpus_simple_bow = corpus_bow(corpus_simple, MSR_DATA, 'simple')
 
-corpus_ner_only = CorpusMSAbstracts_NER(MSR_DATA)
-corpus_ner_bow = corpus_bow(corpus_ner_only, MSR_DATA, 'ner')
+    corpus_collocations = CorpusMSAbstracts_Collocations(MSR_DATA)
+    corpus_collocations_bow = corpus_bow(corpus_collocations, MSR_DATA, 'collocations')
 
-corpus_with_ner = CorpusMSAbstracts(MSR_DATA)
-corpus_bow = corpus_bow(corpus_with_ner, MSR_DATA, 'corpus')
+    corpus_ner_only = CorpusMSAbstracts_NER(MSR_DATA)
+    corpus_ner_only_bow = corpus_bow(corpus_ner_only, MSR_DATA, 'ner')
+
+    corpus_with_ner = CorpusMSAbstracts(MSR_DATA)
+    corpus_bow = corpus_bow(corpus_with_ner, MSR_DATA, 'corpus')
