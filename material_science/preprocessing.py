@@ -236,14 +236,14 @@ class CorpusMSAbstracts(object):
         result = []
         for np in TextBlob(message).noun_phrases:
             if u' ' in np and np not in self.entities:
-                token = [word for word in gensim.utils.tokenize(np, lower=True)][0]
+                tokens = [word for word in gensim.utils.tokenize(np, lower=True) if word not in STOPWORDS]
+                result.extend(tokens)
+            else:
+                token = u'_'.join(part for part in gensim.utils.tokenize(np) if len(part) > 2)
+                if len(token) < 2 or token in stopwords:
+                    # ignore very short phrases and stop words
+                    continue
                 result.append(token)
-                continue
-            token = u'_'.join(part for part in gensim.utils.tokenize(np) if len(part) > 2)
-            if len(token) < 2 or token in stopwords:
-                # ignore very short phrases and stop words
-                continue
-            result.append(token)
         return result
 
 if __name__ == "__main__":
