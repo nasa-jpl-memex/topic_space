@@ -1,14 +1,13 @@
 from __future__ import absolute_import
 
-from .dictionaries import iter_corpus
-
-import gensim
-
 import itertools
 import logging
 
+import gensim
 import numpy as np
 import pandas as pd
+
+from .topic_space.dictionaries import iter_corpus
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
