@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from .preprocessing import (CorpusMSAbstracts, CorpusMSAbstracts_Collocations, CorpusMSAbstracts_NER,
+from topic_space.preprocessing import (CorpusMSAbstracts, CorpusMSAbstracts_Collocations, CorpusMSAbstracts_NER,
                                             CorpusMSAbstractsSimple)
 
 import argparse

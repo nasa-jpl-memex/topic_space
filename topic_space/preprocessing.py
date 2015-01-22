@@ -27,7 +27,7 @@ def iter_material_science_abstracts(filename):
 
 
 
-class CorpusMSAbstractsSimple(object):
+class CorpusSimpleTokenizer(object):
     """
     Simple Corpus from material science proceedings abstracts:
      - simply lowercase & match alphabetic chars
@@ -83,7 +83,7 @@ def best_ngrams(words, top_n=10000, min_freq=50):
     return pat_gram2, pat_gram3
 
 
-class CorpusMSAbstracts_Collocations(object):
+class CorpusCollocationsTokenizer(object):
     """
     Collocation is a "sequence of words or terms that co-occur more often than would be expected by chance."
      - remove stopwords using gensim.parsing.preprocessing.STOPWORDS.
@@ -159,7 +159,7 @@ def best_phrases(document_stream, top_n=10000, prune_at=50000):
     return set(head(sorted_phrases, top_n))
 
 
-class CorpusMSAbstracts_NER(object):
+class CorpusNERTokenizer(object):
     """
     Named entity recognition (NER) is the task of locating chunks of text that refer to people, locations, organizations etc.
     This tags each word with its part-of-speech (POS) category, and suggests phrases based on chunks of "noun phrases".
@@ -204,7 +204,7 @@ class CorpusMSAbstracts_NER(object):
 #corpus_ner_only = CorpusMSAbstracts_NER('material_science/data/msr-data')
 
 
-class CorpusMSAbstracts(object):
+class CorpusMixedTokenizer(object):
     """
     Includes Named entity recognition (NER) is the task of locating chunks of text that refer to entities.
     This tags each word with its part-of-speech (POS) category, and suggests phrases based on chunks of "noun phrases".
@@ -248,10 +248,10 @@ class CorpusMSAbstracts(object):
 
 if __name__ == "__main__":
 
-    corpus_simple = CorpusMSAbstractsSimple('material_science/data/msr-data')
-    collocations_corpus = CorpusMSAbstracts_Collocations('material_science/data/msr-data')
-    corpus_ner_only = CorpusMSAbstracts_NER('material_science/data/msr-data')
-    corpus_with_ne = CorpusMSAbstracts('material_science/data/msr-data')
+    corpus_simple = CorpusSimpleTokenizer('material_science/data/msr-data')
+    collocations_corpus = CorpusCollocationsTokenizer('material_science/data/msr-data')
+    corpus_ner_only = CorpusNERTokenizer('material_science/data/msr-data')
+    corpus_with_ne = CorpusMixedTokenizer('material_science/data/msr-data')
 
     # Compare results for first abstract
 
