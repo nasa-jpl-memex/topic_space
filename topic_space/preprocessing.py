@@ -18,7 +18,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 def iter_material_science_abstracts(filename):
-    with open('material_science/data/msr-data', 'r') as f:
+    with open(filename, 'r') as f:
        for line in f.readlines():
             dictionary = json.loads(line)
             title = dictionary.get('title')
