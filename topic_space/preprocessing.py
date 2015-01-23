@@ -20,9 +20,10 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 def iter_material_science_abstracts(filename):
     with open(filename, 'r') as f:
        for line in f.readlines():
-            dictionary = json.loads(line)
-            title = dictionary.get('title')
-            abstract = dictionary.get('abstract')
+            document = json.loads(line)
+            print line
+            abstract = document.get('abstract')
+            print abstract
             yield abstract
 
 

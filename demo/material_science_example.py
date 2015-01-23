@@ -33,3 +33,4 @@ if __name__ == "__main__":
 
     # Get termite plot for this model
     termite = Termite('termite.csv', "My Simple Tokenized LDA Termite Plot")
+    termite.plot()

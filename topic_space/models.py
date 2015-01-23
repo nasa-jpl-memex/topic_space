@@ -18,10 +18,10 @@ class LDA(object):
     >>> my_lda = LDA("my_corpus.mm", "my_dict.dict")
     """
 
-    def __init__(self, corpus_file, dict_file):
+    def __init__(self, corpus_file, dict_file, ntopics=10):
         self.corpus_file = gensim.corpora.MmCorpus(corpus_file)
         self.dictionary = gensim.corpora.Dictionary.load(dict_file)
-        self.model = gensim.models.LdaModel(self.corpus_file, num_topics=10, id2word=self.dictionary, passes=4)
+        self.model = gensim.models.LdaModel(self.corpus_file, num_topics=ntopics, id2word=self.dictionary, passes=4)
 
     def get_top_words(self, topn=15):
         top_words = [ self.model.show_topic(topicno, topn) for topicno in range(self.model.num_topics) ]

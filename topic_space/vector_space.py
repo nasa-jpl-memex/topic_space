@@ -79,6 +79,6 @@ class CorpusBOW(object):
         >>> CorpusBOW(my_corpus, my_dict).serialize("my_serialized_corpus")
         """
         # Serialize and save corpus bag of words
-        logging.info("storing corpus in matrix market format to %s" % self.filename)
+        logging.info("storing corpus in matrix market format to %s" % filename)
         corpus = gensim.corpora.MmCorpus.serialize(filename, self)
         return corpus
