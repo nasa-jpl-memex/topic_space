@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
+import logging
 import gensim
-
 import pandas as pd
 
 
@@ -38,6 +38,7 @@ class LDA(object):
         >>> my_lda = LDA("my_corpus.mm", "my_dict.dict")
         >>> my_lda.generate_termite_input()
         """
+        logging.info("generating termite plot input from %s " % self.corpus_file)
         top_words = [ self.model.show_topic(topicno, topn=15) for topicno in range(self.model.num_topics) ]
         count = 1
         for topic in top_words:
@@ -50,5 +51,6 @@ class LDA(object):
                 df_temp['topic'] = pd.Series(count, index=df_temp.index)
                 df = df.append(df_temp, ignore_index=True)
             count += 1
+        logging.info("saving termite plot input csv file to %s " % filename)
         df.to_csv(filename, index=False)
         return df

@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from topic_space.preprocessing import CorpusSimpleTokenizer
 
 import gensim
+import logging
 
 def iter_corpus(corpus):
     for document in corpus:
@@ -29,10 +30,12 @@ class CorpusDict(object):
         self.filename = filename
 
     def create(self):
+        logging.info("creating dictionary from corpus %s" % self.corpus)
         corpus_tokens = (tokens for tokens in iter_corpus(self.corpus))
         # Create dictionary out of input corpus tokens
         corpus_dict = gensim.corpora.Dictionary(corpus_tokens)
         # Save dictionary to file
+        logging.info("storing dictionary to %s" % self.filename)
         corpus_dict.save(self.filename)
 
         return corpus_dict
@@ -76,5 +79,6 @@ class CorpusBOW(object):
         >>> CorpusBOW(my_corpus, my_dict).serialize("my_serialized_corpus")
         """
         # Serialize and save corpus bag of words
+        logging.info("storing corpus in matrix market format to %s" % self.filename)
         corpus = gensim.corpora.MmCorpus.serialize(filename, self)
         return corpus
