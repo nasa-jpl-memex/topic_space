@@ -51,3 +51,4 @@ if __name__ == "__main__":
         lda.generate_termite_input('%s_termite.csv' % name)
         # Get termite plot for this model
         termite = Termite('%s_termite.csv' % name, "Termite Plot for %s" % name)
+        termite.plot()
