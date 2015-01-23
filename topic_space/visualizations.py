@@ -4,7 +4,7 @@ Draw a termite plot to visualize topics and words from an LDA.
 """
 import blaze as blz
 from into import into
-
+import logging
 import pandas as pd
 import bokeh.plotting as plt
 from bokeh.models.sources import ColumnDataSource
@@ -57,6 +57,7 @@ class Termite(object):
 
         p.circle(x="topic", y="word", size="size", fill_alpha=0.6, source=data_source)
         #p.xaxis().major_label_orientation = np.pi/3
+        logging.info("generating termite plot for file %s" % self.input_file)
         plt.show(p)
 
 if __name__ == "__main__":
