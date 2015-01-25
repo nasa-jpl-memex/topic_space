@@ -21,9 +21,7 @@ def iter_material_science_abstracts(filename):
     with open(filename, 'r') as f:
        for line in f.readlines():
             document = json.loads(line)
-            print line
             abstract = document.get('abstract')
-            print abstract
             yield abstract
 
 
