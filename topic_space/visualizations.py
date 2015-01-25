@@ -28,7 +28,7 @@ class Termite(object):
         self.input_file = input_file
         self.title = title
 
-    def plot(self):
+    def plot(self, output_file="termite.html"):
         t = blz.Data(self.input_file)
         df = pd.read_csv(self.input_file)
 
@@ -47,7 +47,7 @@ class Termite(object):
 
         source = into(pd.DataFrame, t)
 
-        plt.output_file('termite.html')
+        plt.output_file(output_file)
 
         data_source = ColumnDataSource(source)
 
