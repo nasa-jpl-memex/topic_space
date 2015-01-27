@@ -29,6 +29,10 @@ DF = read_file()
 def hello_world():
     return 'Hello World!'
 
+@app.route("/termite/")
+def termite():
+    return send_file(os.path.join(tmpl_dir,'termite.html'))
+
 
 @app.route('/wordcloud/', methods=["GET", "POST"])
 def wordcloud():
@@ -107,8 +111,8 @@ def histogram():
         css_files=INLINE.css_files,
     )
 
-    # For more details see:
-    #   http://bokeh.pydata.org/en/latest/docs/user_guide/embedding.html#components
+# For more details see:
+#   http://bokeh.pydata.org/en/latest/docs/user_guide/embedding.html#components
     script, div = components(fig, INLINE)
     html = render_template(
         'histogram.html',
@@ -119,4 +123,4 @@ def histogram():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=8000)
