@@ -56,7 +56,7 @@
         <div class="well page-header">
 
             <!--
-            <form class="form-inline" action="/wordcloud/" method="post">
+            <form class="form-inline" action="/topic_space/wordcloud/" method="post">
 <fieldset>
 
 
@@ -92,7 +92,7 @@
 
             -->
 
-            <form method="get" action="/wordcloud/" style="border: 10px">
+            <form method="get" action="/topic_space/wordcloud/" style="border: 10px">
                 From year <input type="text" name="year1" value="{{year1}}"> to <input type="text" name="year2"  value="{{year2}}">
                 without the following words:
                 <textarea name="words" cols="25" rows="3">{{ words | join("\n") }}</textarea>
@@ -104,7 +104,7 @@
         <div style="float:left; width: 70%; padding: 2%">
             <h3>Displaying from {{year1}} to {{year2}}</h3>
             <p>Without: {{ words | join(",") }}</p>
-            <img src="/{{ req_id }}/get_wordcloud.jpg"/>
+            <img src="/topic_space/{{ req_id }}/get_wordcloud.jpg"/>
         </div>
 
 

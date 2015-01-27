@@ -25,16 +25,16 @@ REQUEST_COUNTER = count(start=1)
 DOCS_DF = get_docs_by_year()
 DF = read_file()
 
-@app.route('/')
+@app.route('/topic_space/')
 def hello_world():
     return 'Hello World!'
 
-@app.route("/termite/")
+@app.route("/topic_space/termite/")
 def termite():
     return send_file(os.path.join(tmpl_dir,'termite.html'))
 
 
-@app.route('/wordcloud/', methods=["GET", "POST"])
+@app.route('/topic_space/wordcloud/', methods=["GET", "POST"])
 def wordcloud():
     #import pdb; pdb.set_trace()
     #print("in wordcloud")
@@ -49,7 +49,7 @@ def wordcloud():
     return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id)
 
 
-@app.route('/<req_id>/get_wordcloud.jpg')
+@app.route('/topic_space/<req_id>/get_wordcloud.jpg')
 def get_wordcloud(req_id):
     year1, year2, stop_words = REQUESTS.get(int(req_id), ("1980", "2014", []))
     year_list = map(str, range(int(year1), int(year2)+1))
@@ -85,7 +85,7 @@ def getitem(obj, item, default):
 
 
 
-@app.route('/histogram/', methods=["GET", "POST"])
+@app.route('/topic_space/histogram/', methods=["GET", "POST"])
 def histogram():
     # Grab the inputs arguments from the URL
     # This is automated by the button
@@ -123,4 +123,8 @@ def histogram():
 
 
 if __name__ == '__main__':
+<<<<<<< Updated upstream
     app.run(debug=True, host='0.0.0.0', port=8000)
+=======
+    app.run(debug=True, host='0.0.0.0', port=8017)
+>>>>>>> Stashed changes
