@@ -44,9 +44,9 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/topic_space//wordcloud/">WordCloud</a></li>
+            <li><a href="/topic_space//wordcloud/">WordCloud</a></li>
             <li><a href="/topic_space/termite/">Termite</a></li>
-            <li><a href="/topic_space/diversity/">Diversity</a></li>
+            <li class="active"><a href="/topic_space/diversity/">Diversity</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -54,60 +54,19 @@
 
     <div class="container theme-showcase" role="main">
 
-        <div class="well page-header">
+        <div>
+          <p>Lower values represent higher diversity</p>
 
-            <!--
-            <form class="form-inline" action="/topic_space/wordcloud/" method="post">
-<fieldset>
+          <h2>Simpson's Index by year for LDA words</h2>
+          <img src="/static/topic_space/figure_lda.jpg"/>
 
+          <h2>Simpson's Index by year for words crossing dictionary</h2>
+          <img src="/static/topic_space/figure_all.jpg"/>
 
-  <div class="form-group">
-    <label class="checkbox inline" style="padding-left: 10px; float:left;" for="year1">
-      Show results from
-      <input type="text" id="year1" placeholder="1985" maxlength="4" size="4"/>
-    </label>
-  </div>
-
-
-  <div class="form-group">
-    <label class="checkbox inline" style="padding-left: 0px;" for="year2">
-      to
-      <input type="text" id="year2" placeholder="2014" maxlength="4" size="4"/>
-    </label>
-  </div>
-
-
-  <div class="form-group">
-    <label class="control-label" style="vertical-align:middle;" for="words">without these words</label>
-    <textarea name="words" style="vertical-align:middle;" cols="15" rows="3">{{ words | join("\n") }}</textarea>
-  </div>
-
-
-  <div class="form-group">
-    <div class="col-md-12 text-right">
-      <button type="submit" class="btn btn-primary btn-md">Update</button>
-    </div>
-  </div>
-</fieldset>
-</form>
-
-            -->
-
-            <form method="get" action="/topic_space/wordcloud/" style="border: 10px">
-                From year <input type="text" name="year1" value="{{year1}}"> to <input type="text" name="year2"  value="{{year2}}">
-                without the following words:
-                <textarea name="words" cols="25" rows="3">{{ words | join("\n") }}</textarea>
-                <input type="submit" value="Update"/>
-            </form>
+          <h2>Simpson's Index by year for all words</h2>
+          <img src="/static/topic_space/figure_all.jpg"/>
 
         </div>
-
-        <div style="float:left; width: 70%; padding: 2%">
-            <h3>Displaying from {{year1}} to {{year2}}</h3>
-            <p>Without: {{ words | join(",") }}</p>
-            <img src="/topic_space/{{ req_id }}/get_wordcloud.jpg"/>
-        </div>
-
 
     </div>
    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

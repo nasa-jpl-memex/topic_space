@@ -33,6 +33,14 @@ def hello_world():
 def termite():
     return send_file(os.path.join(tmpl_dir,'termite.html'))
 
+@app.route("/topic_space/diversity/")
+def diversity():
+    return send_file(os.path.join(tmpl_dir,'diversity.html'))
+
+@app.route("/topic_space/ldavis/")
+def ldavis():
+    return send_file(os.path.join(tmpl_dir,'ldavis.html'))
+
 
 @app.route('/topic_space/wordcloud/', methods=["GET", "POST"])
 def wordcloud():
