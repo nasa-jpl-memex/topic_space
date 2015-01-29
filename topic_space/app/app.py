@@ -1,6 +1,7 @@
 from StringIO import StringIO
 import os
 from itertools import count
+from collections import Counter
 
 from flask import Flask, send_file, request, render_template
 from bokeh.embed import components
@@ -46,20 +47,25 @@ def ldavis():
 def wordcloud():
     #import pdb; pdb.set_trace()
     #print("in wordcloud")
+    print("request values:", list(request.values.iteritems()))
     year1 = request.values.get('year1','1980')
     year2 = request.values.get('year2', '2014')
     stop_words = map(lambda x: x.strip(), request.values.get('words','').split('\n'))
+    percents = request.values.get("percent-filter", "0% - 100%")
+    print("Percents: ", percents)
+    percent1, percent2 = map(lambda t: int(t.strip()), percents.strip().replace("%", '').split('-'))
     req_id = REQUEST_COUNTER.next()
-    REQUESTS[req_id] = (year1, year2, stop_words)
+    REQUESTS[req_id] = (year1, year2, stop_words, percent1, percent2)
     #print("REQUETS:", REQUESTS)
     #for k, v in request.values.iteritems():
     #    print(k, v)
-    return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id)
+    return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
+                           percent1=percent1, percent2=percent2)
 
 
 @app.route('/topic_space/<req_id>/get_wordcloud.jpg')
 def get_wordcloud(req_id):
-    year1, year2, stop_words = REQUESTS.get(int(req_id), ("1980", "2014", []))
+    year1, year2, stop_words, percent1, percent2 = REQUESTS.get(int(req_id), ("1980", "2014", []))
     year_list = map(str, range(int(year1), int(year2)+1))
     text = DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].sum()
     #print("in get_wordcloud")
@@ -67,9 +73,15 @@ def get_wordcloud(req_id):
     #print("req_id", req_id)
     #print("REQUESTS:", REQUESTS)
     #    import pdb; pdb.set_trace()
-    stop_words = map(lambda t: t.strip().lower(), stop_words)
+    stop_words = set(map(lambda t: t.strip().lower(), stop_words))
     text_list = map(lambda t: t.strip().lower(), text.split())
-    text_list = filter(lambda t: t not in stop_words, text_list)
+    text_counter = Counter(text_list)
+    low_count = int(len(text_list) * (percent1 * .01))
+    high_count = int(len(text_list) * (percent2 * .01))
+    pass_words = set([k for k, v in text_counter.iteritems() if (v > high_count and v < low_count) ])
+    filter_words = pass_words.union(stop_words)
+    print("filter words:", filter_words)
+    text_list = filter(lambda t: t not in filter_words, text_list)
     text = " ".join(text_list)
     # text = filter(lambda x: x not in stop_words, text.split())
     wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600).generate(text)
