@@ -1,0 +1,11 @@
+{% extend "base.html" %}
+
+{% block extrahead %}
+    {{ plot_resources | indent(4) | safe }}
+
+    {{ plot_script | indent(4) | safe }}
+{% endblock %}
+
+{% block main %}
+    {{ plot_div | indent(4) | safe }}
+{% endblock %}

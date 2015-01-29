@@ -33,6 +33,9 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+{% block extrahead %}{% endblock %}
+
 </head>
 <body role="document">
 
@@ -47,60 +50,7 @@
 
     <div class="container theme-showcase" role="main">
 
-        <div class="well page-header">
-
-            <!--
-            <form class="form-inline" action="/wordcloud/" method="post">
-<fieldset>
-
-
-  <div class="form-group">
-    <label class="checkbox inline" style="padding-left: 10px; float:left;" for="year1">
-      Show results from
-      <input type="text" id="year1" placeholder="1985" maxlength="4" size="4"/>
-    </label>
-  </div>
-
-
-  <div class="form-group">
-    <label class="checkbox inline" style="padding-left: 0px;" for="year2">
-      to
-      <input type="text" id="year2" placeholder="2014" maxlength="4" size="4"/>
-    </label>
-  </div>
-
-
-  <div class="form-group">
-    <label class="control-label" style="vertical-align:middle;" for="words">without these words</label>
-    <textarea name="words" style="vertical-align:middle;" cols="15" rows="3">{{ words | join("\n") }}</textarea>
-  </div>
-
-
-  <div class="form-group">
-    <div class="col-md-12 text-right">
-      <button type="submit" class="btn btn-primary btn-md">Update</button>
-    </div>
-  </div>
-</fieldset>
-</form>
-
-            -->
-
-            <form method="get" action="/wordcloud/" style="border: 10px">
-                From year <input type="text" name="year1" value="{{year1}}"> to <input type="text" name="year2"  value="{{year2}}">
-                without the following words:
-                <textarea name="words" cols="25" rows="3">{{ words | join("\n") }}</textarea>
-                <input type="submit" value="Update"/>
-            </form>
-
-        </div>
-
-        <div style="float:left; width: 70%; padding: 2%">
-            <h3>Displaying from {{year1}} to {{year2}}</h3>
-            <p>Without: {{ words | join(",") }}</p>
-            <img src="/{{ req_id }}/get_wordcloud.jpg"/>
-        </div>
-
+{% block main %}{% endblock %}
 
     </div>
    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -109,5 +59,6 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.min.js"></script>
 
+{% block extrabottomscripts %}{% endblock %}
 </body>
 </html>
