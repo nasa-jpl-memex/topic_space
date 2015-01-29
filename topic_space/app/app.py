@@ -67,8 +67,10 @@ def get_wordcloud(req_id):
     #print("req_id", req_id)
     #print("REQUESTS:", REQUESTS)
     #    import pdb; pdb.set_trace()
-    for word in stop_words:
-        text = text.replace(word, '')
+    stop_words = map(lambda t: t.strip().lower(), stop_words)
+    text_list = map(lambda t: t.strip().lower(), text.split())
+    text_list = filter(lambda t: t not in stop_words, text_list)
+    text = " ".join(text_list)
     # text = filter(lambda x: x not in stop_words, text.split())
     wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600).generate(text)
     img_io = StringIO()
