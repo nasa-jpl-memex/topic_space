@@ -133,6 +133,7 @@
             <p>Without: {{ words | join(",") }}</p>
             <p>Percent filter: {{percent1}}% to {{percent2}}%</p>
             {% for i in range(num_intervals) %}
+                <hr/>
                 <h4> {{start_years[i]}} to {{end_years[i]}}</h4>
                 <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
             {% endfor %}
