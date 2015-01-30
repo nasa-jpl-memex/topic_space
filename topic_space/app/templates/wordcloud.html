@@ -114,12 +114,13 @@
             -->
 
             <form method="get" action="/topic_space/wordcloud/" style="border: 10px">
-                From year <input type="text" name="year1" value="{{year1}}"> to <input type="text" name="year2"  value="{{year2}}">
+                From year <input type="text" name="year1" value="{{year1}}"/> to <input type="text" name="year2"  value="{{year2}}"><br/>
+                in <input type="text" name="intervals" value="{{num_intervals}}"/> intervals<br/>
                 without the following words:
                 <textarea name="words" cols="25" rows="3">{{ words | join("\n") }}</textarea><br/>
                 <p>
                     <label for="percent-filter">Word Filter, Percentage range</label>
-                    <input name="percents" type="text" id="percent-filter" readonly style="border:0; color:#f6931f; font-weight:bold;">
+                    <input name="percents" type="text" id="percent-filter" readonly style="border:0; color:#f6931f; font-weight:bold;"/>
                 </p>
                 <div id="slider-range-percent"></div><br/>
                 <input type="submit" value="Update"/>
@@ -128,10 +129,13 @@
         </div>
 
         <div style="float:left; width: 70%; padding: 2%">
-            <h3>Displaying from {{year1}} to {{year2}}</h3>
+            <h3>Displaying from {{year1}} to {{year2}} in {{num_intervals}} intervals</h3>
             <p>Without: {{ words | join(",") }}</p>
             <p>Percent filter: {{percent1}}% to {{percent2}}%</p>
-            <img src="/topic_space/{{ req_id }}/get_wordcloud.jpg"/>
+            {% for i in range(num_intervals) %}
+                <h4> {{start_years[i]}} to {{end_years[i]}}</h4>
+                <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
+            {% endfor %}
         </div>
 
 
