@@ -59,7 +59,7 @@ def wordcloud():
     year1, year2 = int(year1), int(year2)
     interval_len = (int(year2) - int(year1)) / num_intervals
     for i in range(num_intervals):
-        start_years.append(i*interval_len + year1)
+        start_years.append(i*interval_len + year1 + i)
         end_years.append(min(year2, start_years[-1] + interval_len))
     req_id = REQUEST_COUNTER.next()
     REQUESTS[req_id] = (year1, year2, stop_words, percent1, percent2, num_intervals)
@@ -73,7 +73,7 @@ def get_wordcloud(req_id, interval_id):
     year1, year2, stop_words, percent1, percent2, num_intervals = REQUESTS.get(int(req_id), ("1980", "2014", [], 0, 100, 1))
     year1, year2, interval_id = map(int, [year1, year2, interval_id])
     interval_len = (int(year2) - int(year1)) / num_intervals
-    year1 = interval_len * interval_id + year1
+    year1 = interval_len * interval_id + year1 + interval_id
     year2 = min(year2, year1+interval_len)
     year_list = map(str, range(year1, year2+1))
     print( "year1:", year1, "year2:", year2, "num_intervals", num_intervals, "interval_len", interval_len)
