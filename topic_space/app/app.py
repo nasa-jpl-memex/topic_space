@@ -87,8 +87,8 @@ def get_wordcloud(req_id, interval_id):
     high_count = int(len(text_cw) * (percent2 * .01))
     print("precents", percent1, percent2)
     print("len(text_list)", len(text_list), "low_counnt", low_count, "high_count", high_count)
-    filter_words = text_cw[low_count:high_count]
-    import pdb; pdb.set_trace()
+    filter_words = map(lambda x: x[0], text_cw[low_count:high_count])
+#    import pdb; pdb.set_trace()
     print("len(filter_words)", len(filter_words), "filter_words[:10]", filter_words[:10])
     filter_words = set(filter_words)
     text_list = filter(lambda t: t in filter_words, text_list)
