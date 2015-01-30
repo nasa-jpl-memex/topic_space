@@ -45,7 +45,7 @@
       range: true,
       min: 0,
       max: 100,
-      values: [ 10, 90 ],
+      values: [ {{percent1}}, {{percent2}} ],
       slide: function( event, ui ) {
         $( "#percent-filter" ).val( ui.values[ 0 ] + "% - " + ui.values[ 1 ] + "%" );
       }
@@ -119,7 +119,7 @@
                 <textarea name="words" cols="25" rows="3">{{ words | join("\n") }}</textarea><br/>
                 <p>
                     <label for="percent-filter">Word Filter, Percentage range</label>
-                    <input type="text" id="percent-filter" readonly style="border:0; color:#f6931f; font-weight:bold;">
+                    <input name="percents" type="text" id="percent-filter" readonly style="border:0; color:#f6931f; font-weight:bold;">
                 </p>
                 <div id="slider-range-percent"></div><br/>
                 <input type="submit" value="Update"/>

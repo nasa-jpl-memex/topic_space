@@ -51,7 +51,7 @@ def wordcloud():
     year1 = request.values.get('year1','1980')
     year2 = request.values.get('year2', '2014')
     stop_words = map(lambda x: x.strip(), request.values.get('words','').split('\n'))
-    percents = request.values.get("percent-filter", "0% - 100%")
+    percents = request.values.get("percents", "0% - 100%")
     print("Percents: ", percents)
     percent1, percent2 = map(lambda t: int(t.strip()), percents.strip().replace("%", '').split('-'))
     req_id = REQUEST_COUNTER.next()
