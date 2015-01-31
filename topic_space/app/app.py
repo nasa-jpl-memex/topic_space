@@ -13,6 +13,10 @@ from wordcloud import WordCloud
 
 from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file, read_sample
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -68,8 +72,7 @@ def wordcloud():
                            start_years=start_years, end_years=end_years)
 
 
-@app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
-def get_wordcloud(req_id, interval_id):
+def get_word_frequencies(req_id, interval_id):
     year1, year2, stop_words, percent1, percent2, num_intervals = REQUESTS.get(int(req_id), ("1980", "2014", [], 0, 100, 1))
     year1, year2, interval_id = map(int, [year1, year2, interval_id])
     interval_len = (int(year2) - int(year1)) / num_intervals
@@ -87,10 +90,31 @@ def get_wordcloud(req_id, interval_id):
     low_count = int(len(text_freq) * (percent1 * .01))
     high_count = int(len(text_freq) * (percent2 * .01))
     print("precents", percent1, percent2)
-    print("len(text_cw)", len(text_list), "low_count", low_count, "high_count", high_count)
-    print("text_cw[low_count:low_count+5]", text_freq[low_count:low_count+5])
-    print("text_cw[high_count-5:high_count]", text_freq[high_count-5:high_count])
-    filter_words = map(lambda x: x[0], text_freq[low_count:high_count])
+    print("len(text_freq)", len(text_list), "low_count", low_count, "high_count", high_count)
+    text_freq = text_freq[low_count:high_count]
+    return list(reversed(text_freq[-100:]))
+
+
+@app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud_df.png')
+def get_wordcloud_df(req_id, interval_id):
+    text_freq = get_word_frequencies(req_id, interval_id)
+    fig = plt.figure(figsize=(9.00, 1.00), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.set_frame_on(False)
+    ax.get_yaxis().set_visible(False)
+    ax.get_xaxis().set_visible(False)
+    indices = range(100)
+    vals = map(lambda x: x[1], text_freq)
+    vals += [0] * (len(indices) - len(vals))
+    ax.bar(indices, vals)
+    img_io = StringIO()
+    fig.savefig(img_io, format='png', bbox_inches='tight')
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/png')
+
+@app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
+def get_wordcloud(req_id, interval_id):
+    text_freq = get_word_frequencies(req_id, interval_id)
     wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600)
     wordcloud.fit_words(list(reversed(text_freq[-100:])))
     img_io = StringIO()

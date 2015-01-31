@@ -136,7 +136,9 @@
             {% for i in range(num_intervals) %}
                 <hr/>
                 <h4> {{start_years[i]}} to {{end_years[i]}}</h4>
+                <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud_df.png"/><br/>
                 <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
+
             {% endfor %}
         </div>
 
