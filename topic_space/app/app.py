@@ -11,7 +11,7 @@ from bokeh.templates import RESOURCES
 from bokeh.utils import encode_utf8
 from wordcloud import WordCloud
 
-from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file
+from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file, read_sample
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -24,7 +24,8 @@ Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf mo
 REQUESTS = {0 : ('1980', '2014', [])} # dictionary of requests id:(year1, year2, words)
 REQUEST_COUNTER = count(start=1)
 DOCS_DF = get_docs_by_year()
-DF = read_file()
+#DF = read_file()
+DF = read_sample(1000)
 
 @app.route('/topic_space/')
 def hello_world():
@@ -76,27 +77,23 @@ def get_wordcloud(req_id, interval_id):
     year1 = interval_len * interval_id + year1 + interval_id
     year2 = min(year2, year1+interval_len)
     year_list = map(str, range(year1, year2+1))
-    print( "year1:", year1, "year2:", year2, "num_intervals", num_intervals, "interval_len", interval_len)
+    print("year1:", year1, "year2:", year2, "num_intervals", num_intervals, "interval_len", interval_len)
     text = DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].sum()
     stop_words = set(map(lambda t: t.strip().lower(), stop_words))
     text_list = map(lambda t: t.strip().lower(), text.split())
     text_counter = Counter(text_list)
-    text_cw = list(text_counter.iteritems())
-    text_cw.sort(key=lambda x: x[1])
-    low_count = int(len(text_cw) * (percent1 * .01))
-    high_count = int(len(text_cw) * (percent2 * .01))
+    text_freq = list(text_counter.iteritems())
+    text_freq = filter(lambda x: x[0] not in stop_words, text_freq)
+    text_freq.sort(key=lambda x: x[1])
+    low_count = int(len(text_freq) * (percent1 * .01))
+    high_count = int(len(text_freq) * (percent2 * .01))
     print("precents", percent1, percent2)
-    print("len(text_list)", len(text_list), "low_counnt", low_count, "high_count", high_count)
-    filter_words = map(lambda x: x[0], text_cw[low_count:high_count])
-#    import pdb; pdb.set_trace()
-    print("len(filter_words)", len(filter_words), "filter_words[:10]", filter_words[:10])
-    filter_words = set(filter_words)
-    text_list = filter(lambda t: t in filter_words, text_list)
-    print("len(text_list)", len(text_list))
-    text_list = filter(lambda t: t not in stop_words, text_list)
-    print("len(text_list)", len(text_list))
-    text = " ".join(text_list)
-    wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600).generate(text)
+    print("len(text_cw)", len(text_list), "low_count", low_count, "high_count", high_count)
+    print("text_cw[low_count:low_count+5]", text_freq[low_count:low_count+5])
+    print("text_cw[high_count-5:high_count]", text_freq[high_count-5:high_count])
+    filter_words = map(lambda x: x[0], text_freq[low_count:high_count])
+    wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600)
+    wordcloud.fit_words(list(reversed(text_freq[-100:])))
     img_io = StringIO()
     wordcloud.to_image().save(img_io, 'JPEG', quality=70)
     img_io.seek(0)
