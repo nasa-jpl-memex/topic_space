@@ -1,7 +1,7 @@
 from StringIO import StringIO
 import os
-from itertools import count
 from collections import Counter
+from uuid import uuid1
 
 from flask import Flask, send_file, request, render_template
 from bokeh.embed import components
@@ -22,10 +22,9 @@ Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf mo
 """
 
 REQUESTS = {0 : ('1980', '2014', [])} # dictionary of requests id:(year1, year2, words)
-REQUEST_COUNTER = count(start=1)
 DOCS_DF = get_docs_by_year()
-#DF = read_file()
-DF = read_sample(1000)
+DF = read_file()
+#DF = read_sample(1000)
 
 @app.route('/topic_space/')
 def hello_world():
@@ -62,7 +61,7 @@ def wordcloud():
     for i in range(num_intervals):
         start_years.append(i*interval_len + year1 + i)
         end_years.append(min(year2, start_years[-1] + interval_len))
-    req_id = REQUEST_COUNTER.next()
+    req_id = uuid1().get_fields()[0]
     REQUESTS[req_id] = (year1, year2, stop_words, percent1, percent2, num_intervals)
     return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
                            percent1=percent1, percent2=percent2, num_intervals=num_intervals,
