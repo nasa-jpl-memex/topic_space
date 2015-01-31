@@ -92,7 +92,7 @@ def get_word_frequencies(req_id, interval_id):
     print("precents", percent1, percent2)
     print("len(text_freq)", len(text_list), "low_count", low_count, "high_count", high_count)
     text_freq = text_freq[low_count:high_count]
-    return list(reversed(text_freq[-100:]))
+    return text_freq[-100:]
 
 
 @app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud_df.png')
@@ -105,7 +105,7 @@ def get_wordcloud_df(req_id, interval_id):
     ax.get_xaxis().set_visible(False)
     indices = range(100)
     vals = map(lambda x: x[1], text_freq)
-    vals += [0] * (len(indices) - len(vals))
+    vals = [0] * (len(indices) - len(vals)) + vals
     ax.bar(indices, vals)
     img_io = StringIO()
     fig.savefig(img_io, format='png', bbox_inches='tight')
