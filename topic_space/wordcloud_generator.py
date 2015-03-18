@@ -14,7 +14,7 @@ import bokeh.plotting as plt
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
-DATA_FILE = "mrs-data.json"
+DATA_FILE = "/data/extracted/mrs-data.json"
 STOPWORD_FILE = "stopwords_wordnet.txt"
 
 

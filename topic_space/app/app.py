@@ -1,6 +1,7 @@
 from StringIO import StringIO
 import os
-from itertools import count
+from collections import Counter
+from uuid import uuid1
 
 from flask import Flask, send_file, request, render_template
 from bokeh.embed import components
@@ -10,7 +11,11 @@ from bokeh.templates import RESOURCES
 from bokeh.utils import encode_utf8
 from wordcloud import WordCloud
 
-from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file
+from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file, read_sample
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -21,44 +26,97 @@ Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf mo
 """
 
 REQUESTS = {0 : ('1980', '2014', [])} # dictionary of requests id:(year1, year2, words)
-REQUEST_COUNTER = count(start=1)
 DOCS_DF = get_docs_by_year()
 DF = read_file()
+#DF = read_sample(1000)
 
-@app.route('/')
+@app.route('/topic_space/')
 def hello_world():
     return 'Hello World!'
 
+@app.route("/topic_space/termite/")
+def termite():
+    return send_file(os.path.join(tmpl_dir,'termite.html'))
 
-@app.route('/wordcloud/', methods=["GET", "POST"])
+@app.route("/topic_space/diversity/")
+def diversity():
+    return send_file(os.path.join(tmpl_dir,'diversity.html'))
+
+@app.route("/topic_space/ldavis/")
+def ldavis():
+    return send_file(os.path.join(tmpl_dir,'ldavis.html'))
+
+
+@app.route('/topic_space/wordcloud/', methods=["GET", "POST"])
 def wordcloud():
-    #import pdb; pdb.set_trace()
-    #print("in wordcloud")
     year1 = request.values.get('year1','1980')
     year2 = request.values.get('year2', '2014')
     stop_words = map(lambda x: x.strip(), request.values.get('words','').split('\n'))
-    req_id = REQUEST_COUNTER.next()
-    REQUESTS[req_id] = (year1, year2, stop_words)
-    #print("REQUETS:", REQUESTS)
-    #for k, v in request.values.iteritems():
-    #    print(k, v)
-    return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id)
+    percents = request.values.get("percents", "0% - 100%")
+    percent1, percent2 = map(lambda t: int(t.strip()), percents.strip().replace("%", '').split('-'))
+    try:
+        num_intervals = int(request.values.get('intervals', 1))
+    except ValueError:
+        num_intervals = 1
+    start_years = []
+    end_years = []
+    year1, year2 = int(year1), int(year2)
+    interval_len = (int(year2) - int(year1)) / num_intervals
+    for i in range(num_intervals):
+        start_years.append(i*interval_len + year1 + i)
+        end_years.append(min(year2, start_years[-1] + interval_len))
+    req_id = uuid1().get_fields()[0]
+    REQUESTS[req_id] = (year1, year2, stop_words, percent1, percent2, num_intervals)
+    return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
+                           percent1=percent1, percent2=percent2, num_intervals=num_intervals,
+                           start_years=start_years, end_years=end_years)
 
 
-@app.route('/<req_id>/get_wordcloud.jpg')
-def get_wordcloud(req_id):
-    year1, year2, stop_words = REQUESTS.get(int(req_id), ("1980", "2014", []))
-    year_list = map(str, range(int(year1), int(year2)+1))
+def get_word_frequencies(req_id, interval_id):
+    year1, year2, stop_words, percent1, percent2, num_intervals = REQUESTS.get(int(req_id), ("1980", "2014", [], 0, 100, 1))
+    year1, year2, interval_id = map(int, [year1, year2, interval_id])
+    interval_len = (int(year2) - int(year1)) / num_intervals
+    year1 = interval_len * interval_id + year1 + interval_id
+    year2 = min(year2, year1+interval_len)
+    year_list = map(str, range(year1, year2+1))
+    print("year1:", year1, "year2:", year2, "num_intervals", num_intervals, "interval_len", interval_len)
     text = DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].sum()
-    #print("in get_wordcloud")
-    #print("stop_words:", stop_words)
-    #print("req_id", req_id)
-    #print("REQUESTS:", REQUESTS)
-    #    import pdb; pdb.set_trace()
-    for word in stop_words:
-        text = text.replace(word, '')
-    # text = filter(lambda x: x not in stop_words, text.split())
-    wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600).generate(text)
+    stop_words = set(map(lambda t: t.strip().lower(), stop_words))
+    text_list = map(lambda t: t.strip().lower(), text.split())
+    text_counter = Counter(text_list)
+    text_freq = list(text_counter.iteritems())
+    text_freq = filter(lambda x: x[0] not in stop_words, text_freq)
+    text_freq.sort(key=lambda x: x[1])
+    low_count = int(len(text_freq) * (percent1 * .01))
+    high_count = int(len(text_freq) * (percent2 * .01))
+    print("precents", percent1, percent2)
+    print("len(text_freq)", len(text_list), "low_count", low_count, "high_count", high_count)
+    text_freq = text_freq[low_count:high_count]
+    return text_freq[-100:]
+
+
+@app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud_df.png')
+def get_wordcloud_df(req_id, interval_id):
+    text_freq = get_word_frequencies(req_id, interval_id)
+    fig = plt.figure(figsize=(9.00, 1.00), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.set_frame_on(False)
+    ax.get_yaxis().set_visible(False)
+    ax.get_xaxis().set_visible(False)
+    indices = range(100)
+    vals = map(lambda x: x[1], text_freq)
+    vals = [0] * (len(indices) - len(vals)) + vals
+    ax.bar(indices, vals)
+    img_io = StringIO()
+    fig.savefig(img_io, format='png', bbox_inches='tight')
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/png')
+
+@app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
+def get_wordcloud(req_id, interval_id):
+    text_freq = get_word_frequencies(req_id, interval_id)
+    wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600)
+    wordcloud.fit_words(list(reversed(text_freq[-100:])))
     img_io = StringIO()
     wordcloud.to_image().save(img_io, 'JPEG', quality=70)
     img_io.seek(0)
@@ -81,7 +139,7 @@ def getitem(obj, item, default):
 
 
 
-@app.route('/histogram/', methods=["GET", "POST"])
+@app.route('/topic_space/histogram/', methods=["GET", "POST"])
 def histogram():
     # Grab the inputs arguments from the URL
     # This is automated by the button
@@ -107,8 +165,8 @@ def histogram():
         css_files=INLINE.css_files,
     )
 
-    # For more details see:
-    #   http://bokeh.pydata.org/en/latest/docs/user_guide/embedding.html#components
+# For more details see:
+#   http://bokeh.pydata.org/en/latest/docs/user_guide/embedding.html#components
     script, div = components(fig, INLINE)
     html = render_template(
         'histogram.html',
@@ -119,4 +177,4 @@ def histogram():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=8017)
