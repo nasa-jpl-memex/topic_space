@@ -47,7 +47,11 @@ class RequestData:
 
     def get_interval_num_docs(self, interval_id):
         _, _, year_list = self.get_interval_data(interval_id)
-        return DOCS_DF[DOCS_DF['year'].isin(year_list)].count()
+        return DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].count()
+
+    def get_num_docs(self):
+        return map(lambda interval_id: self.get_interval_num_docs(interval_id),
+                   range(self.num_intervals))
 
     def get_word_frequencies(self, interval_id):
         interval_begin, interval_end, year_list = self.get_interval_data(interval_id)
@@ -155,11 +159,14 @@ def wordcloud():
         css_files=INLINE.css_files,
     )
 
-    plot_scripts, plot_divs = REQUESTS[req_id].get_bokeh_word_frequencies()
+    req = REQUESTS[req_id]
+    plot_scripts, plot_divs = req.get_bokeh_word_frequencies()
+    num_docs = req.get_num_docs()
     return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
                            percent1=percent1, percent2=percent2, num_intervals=num_intervals,
                            start_years=start_years, end_years=end_years,
-                           plot_resources=plot_resources, plot_scripts=plot_scripts, plot_divs=plot_divs)
+                           plot_resources=plot_resources, plot_scripts=plot_scripts, plot_divs=plot_divs,
+                           num_docs=num_docs)
 
 
 @app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
