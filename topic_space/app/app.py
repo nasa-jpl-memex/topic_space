@@ -21,10 +21,95 @@ TEST_TEXT = """
 Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf moon sartorial. Cardigan ethical wolf, paleo leggings fixie Portland pug. Art party authentic Godard, polaroid migas mustache umami messenger bag lo-fi artisan Schlitz literally. Trust fund umami master cleanse sustainable. Pug disrupt hashtag gluten-free flannel. Pug Neutra Brooklyn, vegan 8-bit four dollar toast meditation sustainable pickled Godard Marfa quinoa viral shabby chic. Keytar raw denim locavore, skateboard tousled brunch actually Neutra distillery disrupt roof party McSweeney's scenester.
 """
 
-REQUESTS = {0 : ('1980', '2014', [])} # dictionary of requests id:(year1, year2, words)
 DOCS_DF = get_docs_by_year()
 DF = read_file()
 #DF = read_sample(1000)
+
+
+class RequestData:
+
+    def __init__(self, year1, year2, stop_words=None, percent1=0, percent2=100, num_intervals=1):
+        self.year1 = int(year1)
+        self.year2 = int(year2)
+        self.stop_words = stop_words if stop_words is not None else []
+        self.percent1 = percent1
+        self.percent2 = percent2
+        self.num_intervals = int(num_intervals)
+        self.interval_len = (self.year2 - self.year1) / num_intervals
+
+    def get_interval_data(self, interval_id):
+        interval_id = int(interval_id)
+        interval_begin = self.interval_len * interval_id + self.year1 + interval_id
+        interval_end = min(self.year2, interval_begin + self.interval_len)
+        year_list = map(str, range(interval_begin, interval_end+1))
+        print("interval data:", interval_begin, interval_end, year_list)
+        return interval_begin, interval_end, year_list
+
+    def get_interval_num_docs(self, interval_id):
+        _, _, year_list = self.get_interval_data(interval_id)
+        return DOCS_DF[DOCS_DF['year'].isin(year_list)].count()
+
+    def get_word_frequencies(self, interval_id):
+        interval_begin, interval_end, year_list = self.get_interval_data(interval_id)
+        text = DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].sum()
+        stop_words = set(map(lambda t: t.strip().lower(), self.stop_words))
+        text_list = map(lambda t: t.strip().lower(), text.split())
+        text_counter = Counter(text_list)
+        text_freq = list(text_counter.iteritems())
+        text_freq = filter(lambda x: x[0] not in stop_words, text_freq)
+        text_freq.sort(key=lambda x: x[1])
+        low_count = int(len(text_freq) * (self.percent1 * .01))
+        high_count = int(len(text_freq) * (self.percent2 * .01))
+        text_freq = text_freq[low_count:high_count]
+        return text_freq[-100:]
+
+    def get_wordcloud_img(self, interval_id):
+        text_freq = self.get_word_frequencies(interval_id)
+        wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600)
+        wordcloud.fit_words(list(reversed(text_freq[-100:])))
+        img_io = StringIO()
+        wordcloud.to_image().save(img_io, 'JPEG', quality=70)
+        img_io.seek(0)
+        return img_io
+
+    def get_bokeh_word_frequencies(self):
+        plot_scripts = []
+        plot_divs = []
+        for interval_id in range(self.num_intervals):
+            text_freq = self.get_word_frequencies(interval_id)
+            fig = figure(title="Word frequency", title_text_font_size="12pt", plot_width=800, plot_height=150,
+                         outline_line_color=None, tools="hover")
+            source = ColumnDataSource(
+                data=dict(
+                    left=range(len(text_freq)),
+                    right=[i + 0.7 for i in range(0, len(text_freq))],
+                    top=map(lambda x: x[1], text_freq),
+                    word=map(lambda x: x[0], text_freq),
+                )
+            )
+            fig.quad("left", "right", "top", 0, source=source),
+            fig.toolbar_location = None
+            fig.grid.grid_line_color = None
+            fig.xaxis.axis_line_color = None
+            fig.xaxis.major_tick_line_color = None
+            fig.xaxis.minor_tick_line_color = None
+            fig.xaxis.major_label_text_color = None
+            fig.yaxis.minor_tick_line_color = None
+            hover = fig.select(dict(type=HoverTool))
+            hover.tooltips = [
+            ("word", "@word"),
+            ("frequency", "@top"),
+            ("fill color", "$color[hex, swatch]:fill_color"),
+            ]
+            script, div = components(fig, INLINE)
+            plot_scripts.append(script)
+            plot_divs.append(div)
+        return plot_scripts, plot_divs
+
+
+
+REQUESTS = {0: RequestData('1980', '2014', [])}
+
 
 @app.route('/topic_space/')
 def hello_world():
@@ -45,7 +130,7 @@ def ldavis():
 
 @app.route('/topic_space/wordcloud/', methods=["GET", "POST"])
 def wordcloud():
-    year1 = request.values.get('year1','1980')
+    year1 = request.values.get('year1', '1980')
     year2 = request.values.get('year2', '2014')
     stop_words = map(lambda x: x.strip(), request.values.get('words','').split('\n'))
     percents = request.values.get("percents", "0% - 100%")
@@ -62,10 +147,7 @@ def wordcloud():
         start_years.append(i*interval_len + year1 + i)
         end_years.append(min(year2, start_years[-1] + interval_len))
     req_id = uuid1().get_fields()[0]
-    REQUESTS[req_id] = (year1, year2, stop_words, percent1, percent2, num_intervals)
-    # Configure resources to include BokehJS inline in the document.
-    # For more details see:
-    #   http://bokeh.pydata.org/en/latest/docs/reference/resources_embedding.html#module-bokeh.resources
+    REQUESTS[req_id] = RequestData(year1, year2, stop_words, percent1, percent2, num_intervals)
     plot_resources = RESOURCES.render(
         js_raw=INLINE.js_raw,
         css_raw=INLINE.css_raw,
@@ -73,84 +155,17 @@ def wordcloud():
         css_files=INLINE.css_files,
     )
 
-    plot_scripts, plot_divs = get_bokeh_wordcloud_df(req_id)
+    plot_scripts, plot_divs = REQUESTS[req_id].get_bokeh_word_frequencies()
     return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
                            percent1=percent1, percent2=percent2, num_intervals=num_intervals,
                            start_years=start_years, end_years=end_years,
                            plot_resources=plot_resources, plot_scripts=plot_scripts, plot_divs=plot_divs)
 
 
-def get_bokeh_wordcloud_df(req_id):
-    req = REQUESTS.get(req_id)
-    if req:
-        num_intervals = req[-1]
-    else:
-        num_intervals = 1
-    plot_scripts = []
-    plot_divs = []
-    for interval_id in range(num_intervals):
-        text_freq = get_word_frequencies(req_id, interval_id)
-        fig = figure(title="Word frequency", title_text_font_size="12pt", plot_width=800, plot_height=150, outline_line_color=None, tools="hover")
-        source = ColumnDataSource(
-            data=dict(
-                left=range(len(text_freq)),
-                right=[i + 0.7 for i in range(0, len(text_freq))],
-                top=map(lambda x: x[1], text_freq),
-                word=map(lambda x: x[0], text_freq),
-            )
-        )
-        fig.quad("left", "right", "top", 0, source=source),
-        fig.toolbar_location = None
-        fig.grid.grid_line_color = None
-        fig.xaxis.axis_line_color = None
-        fig.xaxis.major_tick_line_color = None
-        fig.xaxis.minor_tick_line_color = None
-        fig.xaxis.major_label_text_color = None
-        fig.yaxis.minor_tick_line_color = None
-        hover = fig.select(dict(type=HoverTool))
-        hover.tooltips = [
-        ("word", "@word"),
-        ("frequency", "@top"),
-        ("fill color", "$color[hex, swatch]:fill_color"),
-        ]
-        script, div = components(fig, INLINE)
-        plot_scripts.append(script)
-        plot_divs.append(div)
-    return plot_scripts, plot_divs
-
-
-def get_word_frequencies(req_id, interval_id):
-    year1, year2, stop_words, percent1, percent2, num_intervals = REQUESTS.get(int(req_id), ("1980", "2014", [], 0, 100, 1))
-    year1, year2, interval_id = map(int, [year1, year2, interval_id])
-    interval_len = (int(year2) - int(year1)) / num_intervals
-    year1 = interval_len * interval_id + year1 + interval_id
-    year2 = min(year2, year1+interval_len)
-    year_list = map(str, range(year1, year2+1))
-    print("year1:", year1, "year2:", year2, "num_intervals", num_intervals, "interval_len", interval_len)
-    text = DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].sum()
-    stop_words = set(map(lambda t: t.strip().lower(), stop_words))
-    text_list = map(lambda t: t.strip().lower(), text.split())
-    text_counter = Counter(text_list)
-    text_freq = list(text_counter.iteritems())
-    text_freq = filter(lambda x: x[0] not in stop_words, text_freq)
-    text_freq.sort(key=lambda x: x[1])
-    low_count = int(len(text_freq) * (percent1 * .01))
-    high_count = int(len(text_freq) * (percent2 * .01))
-    print("precents", percent1, percent2)
-    print("len(text_freq)", len(text_list), "low_count", low_count, "high_count", high_count)
-    text_freq = text_freq[low_count:high_count]
-    return text_freq[-100:]
-
-
 @app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
-def get_wordcloud(req_id, interval_id):
-    text_freq = get_word_frequencies(req_id, interval_id)
-    wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600)
-    wordcloud.fit_words(list(reversed(text_freq[-100:])))
-    img_io = StringIO()
-    wordcloud.to_image().save(img_io, 'JPEG', quality=70)
-    img_io.seek(0)
-    return send_file(img_io, mimetype='image/jpeg')
+def wordcloud_img(req_id, interval_id):
+    req = REQUESTS.get(int(req_id), REQUESTS[0])
+    return send_file(req.get_wordcloud_img(interval_id), mimetype='image/jpeg')
 
 
 if __name__ == '__main__':
