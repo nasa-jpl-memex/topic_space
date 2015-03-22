@@ -53,6 +53,14 @@
     $( "#percent-filter" ).val( $( "#slider-range-percent" ).slider( "values", 0 )+"% - " + $( "#slider-range-percent" ).slider( "values", 1 )  + "% ");
   });
   </script>
+
+
+    {{ plot_resources | indent(4) | safe }}
+
+    {% for i in range(num_intervals) %}
+    {{ plot_scripts[i] | indent(4) | safe }}
+    {% endfor %}
+
 </head>
 <body role="document">
 
@@ -137,7 +145,7 @@
             {% for i in range(num_intervals) %}
                 <hr/>
                 <h4> {{start_years[i]}} to {{end_years[i]}}</h4>
-                <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud_df.png"/><br/>
+                {{ plot_divs[i] | indent(4) | safe }}
                 <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
 
             {% endfor %}

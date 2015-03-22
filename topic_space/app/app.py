@@ -5,17 +5,14 @@ from uuid import uuid1
 
 from flask import Flask, send_file, request, render_template
 from bokeh.embed import components
-from bokeh.plotting import figure
+from bokeh.models import HoverTool
+from bokeh.plotting import figure, ColumnDataSource
 from bokeh.resources import INLINE
 from bokeh.templates import RESOURCES
 from bokeh.utils import encode_utf8
 from wordcloud import WordCloud
 
 from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file, read_sample
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -67,9 +64,60 @@ def wordcloud():
         end_years.append(min(year2, start_years[-1] + interval_len))
     req_id = uuid1().get_fields()[0]
     REQUESTS[req_id] = (year1, year2, stop_words, percent1, percent2, num_intervals)
+    # Configure resources to include BokehJS inline in the document.
+    # For more details see:
+    #   http://bokeh.pydata.org/en/latest/docs/reference/resources_embedding.html#module-bokeh.resources
+    plot_resources = RESOURCES.render(
+        js_raw=INLINE.js_raw,
+        css_raw=INLINE.css_raw,
+        js_files=INLINE.js_files,
+        css_files=INLINE.css_files,
+    )
+
+    plot_scripts, plot_divs = get_bokeh_wordcloud_df(req_id)
     return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
                            percent1=percent1, percent2=percent2, num_intervals=num_intervals,
-                           start_years=start_years, end_years=end_years)
+                           start_years=start_years, end_years=end_years,
+                           plot_resources=plot_resources, plot_scripts=plot_scripts, plot_divs=plot_divs)
+
+
+def get_bokeh_wordcloud_df(req_id):
+    req = REQUESTS.get(req_id)
+    if req:
+        num_intervals = req[-1]
+    else:
+        num_intervals = 1
+    plot_scripts = []
+    plot_divs = []
+    for interval_id in range(num_intervals):
+        text_freq = get_word_frequencies(req_id, interval_id)
+        fig = figure(title="Word frequency", title_text_font_size="12pt", plot_width=800, plot_height=150, outline_line_color=None, tools="hover")
+        source = ColumnDataSource(
+            data=dict(
+                left=range(len(text_freq)),
+                right=[i + 0.7 for i in range(0, len(text_freq))],
+                top=map(lambda x: x[1], text_freq),
+                word=map(lambda x: x[0], text_freq),
+            )
+        )
+        fig.quad("left", "right", "top", 0, source=source),
+        fig.toolbar_location = None
+        fig.grid.grid_line_color = None
+        fig.xaxis.axis_line_color = None
+        fig.xaxis.major_tick_line_color = None
+        fig.xaxis.minor_tick_line_color = None
+        fig.xaxis.major_label_text_color = None
+        fig.yaxis.minor_tick_line_color = None
+        hover = fig.select(dict(type=HoverTool))
+        hover.tooltips = [
+        ("word", "@word"),
+        ("frequency", "@top"),
+        ("fill color", "$color[hex, swatch]:fill_color"),
+        ]
+        script, div = components(fig, INLINE)
+        plot_scripts.append(script)
+        plot_divs.append(div)
+    return plot_scripts, plot_divs
 
 
 def get_word_frequencies(req_id, interval_id):
@@ -94,23 +142,6 @@ def get_word_frequencies(req_id, interval_id):
     text_freq = text_freq[low_count:high_count]
     return text_freq[-100:]
 
-
-@app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud_df.png')
-def get_wordcloud_df(req_id, interval_id):
-    text_freq = get_word_frequencies(req_id, interval_id)
-    fig = plt.figure(figsize=(9.00, 1.00), dpi=100)
-    ax = fig.add_subplot(111)
-    ax.set_frame_on(False)
-    ax.get_yaxis().set_visible(False)
-    ax.get_xaxis().set_visible(False)
-    indices = range(100)
-    vals = map(lambda x: x[1], text_freq)
-    vals = [0] * (len(indices) - len(vals)) + vals
-    ax.bar(indices, vals)
-    img_io = StringIO()
-    fig.savefig(img_io, format='png', bbox_inches='tight')
-    img_io.seek(0)
-    return send_file(img_io, mimetype='image/png')
 
 @app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
 def get_wordcloud(req_id, interval_id):
