@@ -35,12 +35,12 @@ class RequestData:
         self.stop_words = stop_words if stop_words is not None else []
         self.percent1 = percent1
         self.percent2 = percent2
-        self.num_intervals = int(num_intervals)
-        self.interval_len = (self.year2 - self.year1) / num_intervals
+        self.num_intervals = min(int(num_intervals), self.year2 - self.year1)
+        self.interval_len = (self.year2 - self.year1) / self.num_intervals
 
     def get_interval_data(self, interval_id):
         interval_id = int(interval_id)
-        interval_begin = self.interval_len * interval_id + self.year1 + interval_id
+        interval_begin = self.interval_len * interval_id + self.year1
         interval_end = min(self.year2, interval_begin + self.interval_len)
         year_list = map(str, range(interval_begin, interval_end+1))
         return interval_begin, interval_end, year_list
@@ -132,8 +132,7 @@ def ldavis():
     return send_file(os.path.join(tmpl_dir,'ldavis.html'))
 
 
-@app.route('/topic_space/wordcloud/', methods=["GET", "POST"])
-def wordcloud():
+def cache_request():
     year1 = request.values.get('year1', '1980')
     year2 = request.values.get('year2', '2014')
     stop_words = map(lambda x: x.strip(), request.values.get('words','').split('\n'))
@@ -143,15 +142,22 @@ def wordcloud():
         num_intervals = int(request.values.get('intervals', 1))
     except ValueError:
         num_intervals = 1
-    start_years = []
-    end_years = []
     year1, year2 = int(year1), int(year2)
-    interval_len = (int(year2) - int(year1)) / num_intervals
-    for i in range(num_intervals):
-        start_years.append(i*interval_len + year1 + i)
-        end_years.append(min(year2, start_years[-1] + interval_len))
     req_id = uuid1().get_fields()[0]
     REQUESTS[req_id] = RequestData(year1, year2, stop_words, percent1, percent2, num_intervals)
+    return req_id
+
+
+@app.route('/topic_space/wordcloud/', methods=["GET", "POST"])
+def wordcloud():
+    req_id = cache_request()
+    req = REQUESTS[req_id]
+
+    start_years = []
+    end_years = []
+    for i in range(req.num_intervals):
+        start_years.append(i*req.interval_len + req.year1)
+        end_years.append(min(req.year2, start_years[-1] + req.interval_len))
     plot_resources = RESOURCES.render(
         js_raw=INLINE.js_raw,
         css_raw=INLINE.css_raw,
@@ -159,11 +165,10 @@ def wordcloud():
         css_files=INLINE.css_files,
     )
 
-    req = REQUESTS[req_id]
     plot_scripts, plot_divs = req.get_bokeh_word_frequencies()
     num_docs = req.get_num_docs()
-    return render_template('wordcloud.html', year1=year1, year2=year2, words=stop_words, req_id=req_id,
-                           percent1=percent1, percent2=percent2, num_intervals=num_intervals,
+    return render_template('wordcloud.html', year1=req.year1, year2=req.year2, words=req.stop_words, req_id=req_id,
+                           percent1=req.percent1, percent2=req.percent2, num_intervals=req.num_intervals,
                            start_years=start_years, end_years=end_years,
                            plot_resources=plot_resources, plot_scripts=plot_scripts, plot_divs=plot_divs,
                            num_docs=num_docs)
