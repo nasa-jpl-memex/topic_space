@@ -18,6 +18,7 @@ from elasticsearch import Elasticsearch
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
 DATA_FILE = "/data/extracted/mrs-data.json"
+PKL_FILE = "/data/topic_space/docs_by_year.pkl"
 STOPWORD_FILE = "stopwords_wordnet.txt"
 ELASTICSEARCH_HOST = "http://10.3.2.56:9002"
 ELASTICSEARCH_INDEX = "dig-mrs-dev16"
@@ -298,12 +299,12 @@ def test_wordcloud():
 
 def create_docs():
     df = get_docs_by_year()
-    cPickle.dump(df, open("docs_by_year.pkl", 'w'), protocol=2)
+    cPickle.dump(df, open(PKL_FILE, 'w'), protocol=2)
 
 def load_docs():
-    if not os.path.exists("docs_by_year.pkl"):
+    if not os.path.exists(PKL_FILE):
         create_docs()
-    return cPickle.load(open("docs_by_year.pkl"))
+    return cPickle.load(open(PKL_FILE))
 
 if __name__ == "__main__":
     #main_example()
