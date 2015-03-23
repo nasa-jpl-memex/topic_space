@@ -1,5 +1,6 @@
 """Visualizations of the material science research files"""
 
+import cPickle
 import json
 import os
 import random
@@ -10,13 +11,15 @@ import pattern.vector as pv
 from wordcloud import WordCloud
 
 import bokeh.plotting as plt
+from elasticsearch import Elasticsearch
 
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
 DATA_FILE = "/data/extracted/mrs-data.json"
 STOPWORD_FILE = "stopwords_wordnet.txt"
-
+ELASTICSEARCH_HOST = "http://10.3.2.56:9002"
+ELASTICSEARCH_INDEX = "dig-mrs-dev16"
 
 def make_output_dir(dir_name="output"):
     try:
@@ -34,6 +37,26 @@ def read_file():
             except ValueError:
                 print("Unable to process line:\n\t", line)
     return pd.DataFrame(list_of_dicts)
+
+
+def process_dig_response(response):
+    years = []
+    abstracts = []
+    for r in response["hits"]["hits"]:
+        r = r["_source"]
+        years.append(r["dateCreated"].split('-')[0])
+        abstracts.append(r['hasAbstractPart']["text"])
+    return pd.DataFrame({"year": years, "abstract": abstracts})
+
+def read_elasticsearch():
+    es = Elasticsearch([ELASTICSEARCH_HOST])
+    df = pd.DataFrame([], [], columns=["year", "abstract"])
+    if es.indices.exists(ELASTICSEARCH_INDEX):
+        response = es.search(index=ELASTICSEARCH_INDEX, body={"query": {"match_all":{}}})
+        df = process_dig_response(response), ignore_index=True)
+        df.append(process_dig_response(response), ignore_index=True)
+    else:
+        raise RuntimeError("Could not connect to ELASTICSEARCH_INDEX: %s" % ELASTICSEARCH_INDEX)
 
 
 def read_sample(n=10):
@@ -64,7 +87,9 @@ def get_clusters_by_year(df, k=5):
 
 
 def lsa_apply(df):
+    print("Building model")
     m = pv.Model([pv.Document(a) for a in df['abstract']], weight=pv.TFIDF)
+    print("Returning reduction")
     return m.reduce(2)
 
 
@@ -195,10 +220,12 @@ def main_example():
     #p = bokeh_lsa(year, lsa_df)
     return
 
-def get_docs_by_year():
+def get_docs_by_year(sample=None):
     print("reading data")
-    #df = read_file()
-    df = read_sample(10000)
+    if sample is None:
+        df = read_file()
+    else:
+        df = read_sample(sample)
     print("computing lsa")
     lsas = get_lsa_by_year(df)
     print("concating texts")
@@ -268,7 +295,16 @@ def main_court_minus_lsa_words():
 def test_wordcloud():
     generate_word_cloud_image("ABC ABC ABD ABD", "test.jpg")
 
+def create_docs():
+    df = get_docs_by_year()
+    cPickle.dump(df, open("docs_by_year.pkl", 'w'), protocol=2)
+
+def load_docs():
+    if not os._exists("docs_by_year.pkl"):
+        create_docs()
+    return cPickle.load(open("docs_by_year.pkl"))
+
 if __name__ == "__main__":
     #main_example()
     #test_wordcloud()
-    pass
+    create_docs()

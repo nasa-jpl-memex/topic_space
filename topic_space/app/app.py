@@ -11,7 +11,7 @@ from bokeh.resources import INLINE
 from bokeh.templates import RESOURCES
 from wordcloud import WordCloud
 
-from topic_space.wordcloud_generator import FONT_PATH, get_docs_by_year, read_file, read_sample
+from topic_space.wordcloud_generator import FONT_PATH, load_docs
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -21,7 +21,7 @@ TEST_TEXT = """
 Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf moon sartorial. Cardigan ethical wolf, paleo leggings fixie Portland pug. Art party authentic Godard, polaroid migas mustache umami messenger bag lo-fi artisan Schlitz literally. Trust fund umami master cleanse sustainable. Pug disrupt hashtag gluten-free flannel. Pug Neutra Brooklyn, vegan 8-bit four dollar toast meditation sustainable pickled Godard Marfa quinoa viral shabby chic. Keytar raw denim locavore, skateboard tousled brunch actually Neutra distillery disrupt roof party McSweeney's scenester.
 """
 
-DOCS_DF = get_docs_by_year()
+DOCS_DF = load_docs()
 print("Loaded documents")
 #DF = read_file()
 #DF = read_sample(1000)
