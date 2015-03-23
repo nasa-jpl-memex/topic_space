@@ -13,14 +13,14 @@ from wordcloud import WordCloud
 
 import bokeh.plotting as plt
 from elasticsearch import Elasticsearch
-
+from elasticsearch.helpers import scan
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
 DATA_FILE = "/data/extracted/mrs-data.json"
 PKL_FILE = "/data/topic_space/docs_by_year.pkl"
 STOPWORD_FILE = "stopwords_wordnet.txt"
-ELASTICSEARCH_HOST = "http://10.3.2.56:9002"
+ELASTICSEARCH_HOST = "http://10.3.2.56:9200"
 ELASTICSEARCH_INDEX = "dig-mrs-dev16"
 
 def make_output_dir(dir_name="output"):
@@ -41,24 +41,35 @@ def read_file():
     return pd.DataFrame(list_of_dicts)
 
 
-def process_dig_response(response):
+def process_dig_response(scan_response):
     years = []
     abstracts = []
-    for r in response["hits"]["hits"]:
+    for r in scan_response:
         r = r["_source"]
         years.append(r["dateCreated"].split('-')[0])
         abstracts.append(r['hasAbstractPart']["text"])
     return pd.DataFrame({"year": years, "abstract": abstracts})
 
+
 def read_elasticsearch():
     es = Elasticsearch([ELASTICSEARCH_HOST])
-    df = pd.DataFrame([], [], columns=["year", "abstract"])
+    years = []
+    abstracts = []
     if es.indices.exists(ELASTICSEARCH_INDEX):
-        response = es.search(index=ELASTICSEARCH_INDEX, body={"query": {"match_all":{}}})
-        df = process_dig_response(response)
-        df.append(process_dig_response(response), ignore_index=True)
+        query = {"query": {"match_all": {}}}
+        scanner = scan(es, index=ELASTICSEARCH_INDEX, query=query, size=1000)
+        for res in scanner:
+            try:
+                res = res["_source"]
+                year = res["dateCreated"].split('-')[0]
+                abstract = res["hasAbstractPart"]["text"]
+                years.append(year)
+                abstracts.append(abstract)
+            except KeyError:
+                pass
     else:
         raise RuntimeError("Could not connect to ELASTICSEARCH_INDEX: %s" % ELASTICSEARCH_INDEX)
+    return pd.DataFrame({"year": years, "abstract": abstracts})
 
 
 def read_sample(n=10):
@@ -222,9 +233,11 @@ def main_example():
     #p = bokeh_lsa(year, lsa_df)
     return
 
-def get_docs_by_year(sample=None):
+def get_docs_by_year(sample=None, source="file"):
     print("reading data")
-    if sample is None:
+    if source == "elasticsearch":
+        df = read_elasticsearch()
+    elif sample is None:
         df = read_file()
     else:
         df = read_sample(sample)
@@ -298,7 +311,7 @@ def test_wordcloud():
     generate_word_cloud_image("ABC ABC ABD ABD", "test.jpg")
 
 def create_docs():
-    df = get_docs_by_year()
+    df = get_docs_by_year(source="elasticsearch")
     cPickle.dump(df, open(PKL_FILE, 'w'), protocol=2)
 
 def load_docs():
