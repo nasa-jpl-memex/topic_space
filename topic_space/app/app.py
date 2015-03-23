@@ -22,7 +22,8 @@ Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf mo
 """
 
 DOCS_DF = get_docs_by_year()
-DF = read_file()
+print("Loaded documents")
+#DF = read_file()
 #DF = read_sample(1000)
 
 
@@ -42,12 +43,11 @@ class RequestData:
         interval_begin = self.interval_len * interval_id + self.year1 + interval_id
         interval_end = min(self.year2, interval_begin + self.interval_len)
         year_list = map(str, range(interval_begin, interval_end+1))
-        print("interval data:", interval_begin, interval_end, year_list)
         return interval_begin, interval_end, year_list
 
     def get_interval_num_docs(self, interval_id):
         _, _, year_list = self.get_interval_data(interval_id)
-        return DOCS_DF[DOCS_DF['year'].isin(year_list)]['lsa_abs'].count()
+        return DOCS_DF[DOCS_DF['year'].isin(year_list)]['num_docs'].sum()
 
     def get_num_docs(self):
         return map(lambda interval_id: self.get_interval_num_docs(interval_id),

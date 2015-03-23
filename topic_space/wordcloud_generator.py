@@ -196,17 +196,25 @@ def main_example():
     return
 
 def get_docs_by_year():
+    print("reading data")
     #df = read_file()
-    df = read_sample(100)
+    df = read_sample(10000)
+    print("computing lsa")
     lsas = get_lsa_by_year(df)
+    print("concating texts")
     texts = df[['year', 'abstract']].groupby('year').sum()
+    counts = df[['year', 'abstract']].groupby('year').count()
+    print("building dataframe")
     doc_dicts = []
     for year, lsa in lsas.iterkv():
         text = texts.ix[year]['abstract']
         words = interesting_words_1(lsa, 100)
         lsa_terms = set(words)
         processed_texts = " ".join([w for w in text.split() if w in lsa_terms])
-        doc_dicts.append({"year": year, "lsa_abs": processed_texts})
+        doc_dicts.append({"year": year,
+                          "lsa_abs": processed_texts,
+                          "num_docs": counts.ix[year]['abstract'],
+                         })
     doc_df = pd.DataFrame(doc_dicts)
     return doc_df
 
