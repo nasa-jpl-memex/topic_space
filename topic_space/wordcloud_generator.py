@@ -3,6 +3,7 @@
 import cPickle
 import json
 import os
+import os.path
 import random
 
 import numpy as np
@@ -53,7 +54,7 @@ def read_elasticsearch():
     df = pd.DataFrame([], [], columns=["year", "abstract"])
     if es.indices.exists(ELASTICSEARCH_INDEX):
         response = es.search(index=ELASTICSEARCH_INDEX, body={"query": {"match_all":{}}})
-        df = process_dig_response(response), ignore_index=True)
+        df = process_dig_response(response)
         df.append(process_dig_response(response), ignore_index=True)
     else:
         raise RuntimeError("Could not connect to ELASTICSEARCH_INDEX: %s" % ELASTICSEARCH_INDEX)
@@ -300,7 +301,7 @@ def create_docs():
     cPickle.dump(df, open("docs_by_year.pkl", 'w'), protocol=2)
 
 def load_docs():
-    if not os._exists("docs_by_year.pkl"):
+    if not os.path.exists("docs_by_year.pkl"):
         create_docs()
     return cPickle.load(open("docs_by_year.pkl"))
 
