@@ -144,7 +144,7 @@
             <p>Percent filter: {{percent1}}% to {{percent2}}%</p>
             {% for i in range(num_intervals) %}
                 <hr/>
-                <h4> {{start_years[i]}} to {{end_years[i]}} displaying top 100 words from {{num_docs[i]}} documents</h4>
+                <h4>Top words in years {{start_years[i]}} to {{end_years[i]}} from {{num_docs[i]}} documents</h4>
                 {{ plot_divs[i] | indent(4) | safe }}
                 <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
 
