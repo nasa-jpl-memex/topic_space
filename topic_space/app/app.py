@@ -25,6 +25,11 @@ TEST_TEXT = """
 Butcher stumptown aesthetic, PBR distillery blog normcore 8-bit cronut 3 wolf moon sartorial. Cardigan ethical wolf, paleo leggings fixie Portland pug. Art party authentic Godard, polaroid migas mustache umami messenger bag lo-fi artisan Schlitz literally. Trust fund umami master cleanse sustainable. Pug disrupt hashtag gluten-free flannel. Pug Neutra Brooklyn, vegan 8-bit four dollar toast meditation sustainable pickled Godard Marfa quinoa viral shabby chic. Keytar raw denim locavore, skateboard tousled brunch actually Neutra distillery disrupt roof party McSweeney's scenester.
 """
 
+DATA_FILE_MRS = "/data/extracted/mrs-data.json"
+DATA_FILE_NATURE_ARCHIVES = "/data/extracted/nature_archives.json"
+DATA_FILE_NATURE_RESEARCH = "/data/extracted/nature_research.json"
+
+
 REQUESTS = {0 : ('1980', '2014', [])} # dictionary of requests id:(year1, year2, words)
 DOCS_DF = get_docs_by_year()
 DF = read_file()

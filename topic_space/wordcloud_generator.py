@@ -14,7 +14,7 @@ import bokeh.plotting as plt
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
-DATA_FILE = "/data/extracted/mrs-data.json"
+
 STOPWORD_FILE = "stopwords_wordnet.txt"
 
 
@@ -25,9 +25,9 @@ def make_output_dir(dir_name="output"):
         pass
 
 
-def read_file():
+def read_file(file):
     list_of_dicts = []
-    with open(DATA_FILE, 'r') as fp:
+    with open(file, 'r') as fp:
         for line in fp.readlines():
             try:
                 list_of_dicts.append(json.loads(line))
