@@ -29,7 +29,7 @@ print("Loaded documents")
 
 class RequestData:
 
-    def __init__(self, year1, year2, stop_words=None, percent1=0, percent2=100, num_intervals=1):
+    def __init__(self, year1, year2, stop_words=None, percent1=0, percent2=100, num_intervals=1, side_by_side=False):
         self.year1 = int(year1)
         self.year2 = int(year2)
         self.stop_words = stop_words if stop_words is not None else []
@@ -37,6 +37,8 @@ class RequestData:
         self.percent2 = percent2
         self.num_intervals = min(int(num_intervals), self.year2 - self.year1)
         self.interval_len = (self.year2 - self.year1) / self.num_intervals
+        self.side_by_side = side_by_side
+        self.image_width = 400 if side_by_side else 800
 
     def get_interval_data(self, interval_id):
         interval_id = int(interval_id)
@@ -69,7 +71,7 @@ class RequestData:
 
     def get_wordcloud_img(self, interval_id):
         text_freq = self.get_word_frequencies(interval_id)
-        wordcloud = WordCloud(font_path=FONT_PATH, width=800, height=600)
+        wordcloud = WordCloud(font_path=FONT_PATH, width=self.image_width, height=int(self.image_width * .75))
         wordcloud.fit_words(list(reversed(text_freq[-100:])))
         img_io = StringIO()
         wordcloud.to_image().save(img_io, 'JPEG', quality=70)
@@ -81,7 +83,7 @@ class RequestData:
         plot_divs = []
         for interval_id in range(self.num_intervals):
             text_freq = self.get_word_frequencies(interval_id)
-            fig = figure(title="Word frequency", title_text_font_size="12pt", plot_width=800, plot_height=150,
+            fig = figure(title="Word frequency", title_text_font_size="12pt", plot_width=self.image_width, plot_height=150,
                          outline_line_color=None, tools="hover")
             source = ColumnDataSource(
                 data=dict(
@@ -144,7 +146,9 @@ def cache_request():
         num_intervals = 1
     year1, year2 = int(year1), int(year2)
     req_id = uuid1().get_fields()[0]
-    REQUESTS[req_id] = RequestData(year1, year2, stop_words, percent1, percent2, num_intervals)
+    side_by_side = request.values.get("side_by_side", False) == "side_by_side"
+    #    import pdb; pdb.set_trace()
+    REQUESTS[req_id] = RequestData(year1, year2, stop_words, percent1, percent2, num_intervals, side_by_side)
     return req_id
 
 
@@ -171,7 +175,7 @@ def wordcloud():
                            percent1=req.percent1, percent2=req.percent2, num_intervals=req.num_intervals,
                            start_years=start_years, end_years=end_years,
                            plot_resources=plot_resources, plot_scripts=plot_scripts, plot_divs=plot_divs,
-                           num_docs=num_docs)
+                           num_docs=num_docs, side_by_side=req.side_by_side)
 
 
 @app.route('/topic_space/<req_id>/<interval_id>/get_wordcloud.jpg')
