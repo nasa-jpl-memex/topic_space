@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
   <title>Topic Space WordCloud Generator</title>
   <meta charset="utf-8">
@@ -133,6 +133,7 @@
                     <input name="percents" type="text" id="percent-filter" readonly style="border:0; color:#f6931f; font-weight:bold;"/>
                 </p>
                 <div id="slider-range-percent"></div><br/>
+                <label><input name="side_by_side" type="checkbox" value="side_by_side" {% if side_by_side %} checked {% endif %}> side by side display</label><br/>
                 <input type="submit" value="Update"/>
             </form>
 
@@ -142,13 +143,25 @@
             <h3>Displaying from {{year1}} to {{year2}} in {{num_intervals}} intervals</h3>
             <p>Without: {{ words | join(",") }}</p>
             <p>Percent filter: {{percent1}}% to {{percent2}}%</p>
-            {% for i in range(num_intervals) %}
-                <hr/>
-                <h4>Top words in years {{start_years[i]}} to {{end_years[i]}} from {{num_docs[i]}} documents</h4>
-                {{ plot_divs[i] | indent(4) | safe }}
-                <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
+            {% if side_by_side %}
+                <div style="white-space: nowrap;">
+                {% for i in range(num_intervals) %}
+                    <div style="display: inline-block">
+                    <h4>{{start_years[i]}} to {{end_years[i]}} from {{num_docs[i]}} docs</h4>
+                    {{ plot_divs[i] | indent(4) | safe }}
+                    <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
+                  </div>
+                {% endfor %}
+                </div>
 
-            {% endfor %}
+            {% else %}
+                {% for i in range(num_intervals) %}
+                    <hr/>
+                    <h4>Top words in years {{start_years[i]}} to {{end_years[i]}} from {{num_docs[i]}} documents</h4>
+                    {{ plot_divs[i] | indent(4) | safe }}
+                    <img src="/topic_space/{{ req_id }}/{{ i }}/get_wordcloud.jpg"/><br/>
+                {% endfor %}
+            {% endif %}
         </div>
 
 
