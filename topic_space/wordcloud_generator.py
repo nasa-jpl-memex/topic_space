@@ -1,7 +1,9 @@
 """Visualizations of the material science research files"""
 
+import cPickle
 import json
 import os
+import os.path
 import random
 
 import numpy as np
@@ -10,12 +12,11 @@ import pattern.vector as pv
 from wordcloud import WordCloud
 
 import bokeh.plotting as plt
-
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import scan
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "DejaVuSans.ttf")
-
-STOPWORD_FILE = "stopwords_wordnet.txt"
 
 
 def make_output_dir(dir_name="output"):
@@ -34,6 +35,37 @@ def read_file(file):
             except ValueError:
                 print("Unable to process line:\n\t", line)
     return pd.DataFrame(list_of_dicts)
+
+
+def process_dig_response(scan_response):
+    years = []
+    abstracts = []
+    for r in scan_response:
+        r = r["_source"]
+        years.append(r["dateCreated"].split('-')[0])
+        abstracts.append(r['hasAbstractPart']["text"])
+    return pd.DataFrame({"year": years, "abstract": abstracts})
+
+
+def read_elasticsearch():
+    es = Elasticsearch([ELASTICSEARCH_HOST])
+    years = []
+    abstracts = []
+    if es.indices.exists(ELASTICSEARCH_INDEX):
+        query = {"query": {"match_all": {}}}
+        scanner = scan(es, index=ELASTICSEARCH_INDEX, query=query, size=1000)
+        for res in scanner:
+            try:
+                res = res["_source"]
+                year = res["dateCreated"].split('-')[0]
+                abstract = res["hasAbstractPart"]["text"]
+                years.append(year)
+                abstracts.append(abstract)
+            except KeyError:
+                pass
+    else:
+        raise RuntimeError("Could not connect to ELASTICSEARCH_INDEX: %s" % ELASTICSEARCH_INDEX)
+    return pd.DataFrame({"year": years, "abstract": abstracts})
 
 
 def read_sample(n=10):
@@ -64,7 +96,9 @@ def get_clusters_by_year(df, k=5):
 
 
 def lsa_apply(df):
+    print("Building model")
     m = pv.Model([pv.Document(a) for a in df['abstract']], weight=pv.TFIDF)
+    print("Returning reduction")
     return m.reduce(2)
 
 
@@ -195,18 +229,30 @@ def main_example():
     #p = bokeh_lsa(year, lsa_df)
     return
 
-def get_docs_by_year():
-    #df = read_file()
-    df = read_sample(100)
+def get_docs_by_year(sample=None, source="file"):
+    print("reading data")
+    if source == "elasticsearch":
+        df = read_elasticsearch()
+    elif sample is None:
+        df = read_file()
+    else:
+        df = read_sample(sample)
+    print("computing lsa")
     lsas = get_lsa_by_year(df)
+    print("concating texts")
     texts = df[['year', 'abstract']].groupby('year').sum()
+    counts = df[['year', 'abstract']].groupby('year').count()
+    print("building dataframe")
     doc_dicts = []
     for year, lsa in lsas.iterkv():
         text = texts.ix[year]['abstract']
         words = interesting_words_1(lsa, 100)
         lsa_terms = set(words)
         processed_texts = " ".join([w for w in text.split() if w in lsa_terms])
-        doc_dicts.append({"year": year, "lsa_abs": processed_texts})
+        doc_dicts.append({"year": year,
+                          "lsa_abs": processed_texts,
+                          "num_docs": counts.ix[year]['abstract'],
+                         })
     doc_df = pd.DataFrame(doc_dicts)
     return doc_df
 
@@ -260,7 +306,16 @@ def main_court_minus_lsa_words():
 def test_wordcloud():
     generate_word_cloud_image("ABC ABC ABD ABD", "test.jpg")
 
+def create_docs():
+    df = get_docs_by_year(source="elasticsearch")
+    cPickle.dump(df, open(PKL_FILE, 'w'), protocol=2)
+
+def load_docs():
+    if not os.path.exists(PKL_FILE):
+        create_docs()
+    return cPickle.load(open(PKL_FILE))
+
 if __name__ == "__main__":
     #main_example()
     #test_wordcloud()
-    pass
+    create_docs()
