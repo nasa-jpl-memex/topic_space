@@ -29,9 +29,9 @@
 }
 </style>
 
-    <script src="/static/topic_space/ldavis/d3.v3.js"></script>
-    <script src="/static/topic_space/ldavis/ldavis.js"></script>
-    <link rel="stylesheet" type="text/css" href="/static/topic_space/ldavis/lda.css">
+    <script src="/static/ldavis/d3.v3.js"></script>
+    <script src="/static/ldavis/ldavis.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/ldavis/lda.css">
   </head>
 
   <body>
@@ -40,13 +40,12 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
-            <a class="navbar-brand" href="#">Material Science Topics </a>
+            <a class="navbar-brand" href="#">TOPIC SPACE</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="/topic_space/wordcloud/">WordCloud</a></li>
             <li><a href="/topic_space/termite/">Termite</a></li>
-            <li><a href="/topic_space/diversity/">Diversity</a></li>
             <li class="active"><a href="/topic_space/ldavis/">LDAVis</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -62,7 +61,7 @@
     <div class="row" style="text-align:center"> <h1>LDAVis</h1><h4>LDAVis allows you to explore the different topics in Material Science.</h4> <p>These are the results after performing LDA on the ~74,000 documents with an EntityTokenizer and n=10</p></div>
     <div id="lda" style="clear: left; background-color: #ffffff; position: relative; top: 60px; left: 50px"></div>
     <script>
-      var vis = new LDAvis("div#lda", "/static/topic_space/ldavis/lda.json");
+      var vis = new LDAvis("div#lda", "/static/ldavis/lda.json");
     </script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>

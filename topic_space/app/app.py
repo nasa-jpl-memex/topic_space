@@ -11,15 +11,16 @@ from bokeh.resources import INLINE
 from bokeh.templates import RESOURCES
 from wordcloud import WordCloud
 
-from topic_space.wordcloud_generator import FONT_PATH, load_docs
-
+from wordcloud_generator import FONT_PATH, load_docs
+from viz import Termite
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
 DOCS_DF = load_docs()
+TERMITE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'termite.csv')
+
 print("Loaded documents")
-#DF = read_file()
 
 
 class RequestData:
@@ -116,7 +117,9 @@ def hello_world():
 
 @app.route("/topic_space/termite/")
 def termite():
-    return send_file(os.path.join(tmpl_dir,'termite.html'))
+    viz = Termite(TERMITE_FILE)
+    script, div = viz.plot()
+    return render_template('termite.html', script=script, div=div)
 
 @app.route("/topic_space/diversity/")
 def diversity():
@@ -124,7 +127,7 @@ def diversity():
 
 @app.route("/topic_space/ldavis/")
 def ldavis():
-    return send_file(os.path.join(tmpl_dir,'ldavis.html'))
+    return render_template("ldavis.html")
 
 
 def cache_request():
