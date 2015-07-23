@@ -4,10 +4,10 @@
       <title>Topic Space Termite Plot</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" >
-      <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.8.2.min.css" rel="stylesheet" type="text/css">
-      <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.8.2.min.js"></script>
+      <link rel="stylesheet" href="{{ url_for('static', filename='termite/bootstrap.min.css') }}"/>
+      <link rel="stylesheet" href="{{ url_for('static', filename='termite/bootstrap-theme.min.css') }}" >
+      <link href="{{ url_for('static', filename='termite/bokeh-0.8.2.min.css') }}" rel="stylesheet" type="text/css">
+      <script src="{{ url_for('static', filename='termite/bokeh-0.8.2.min.js') }}"></script>
       {{ script | safe }}
     </head>
     <body role="document">
@@ -29,15 +29,15 @@
     </nav>
 
       <div class="container theme-showcase" role="main" style="margin-top:60px">
-           <div class="row" style="text-align:center"> <h1>Termite Plot</h1><h4>A Termite plot allows you to explore the different topics in Material Science.</h4> <p>These are the results after performing LDA on the ~74,000 documents with an EntityTokenizer and n=10</p></div>
+           <div class="row" style="text-align:center"> <h1>Termite Plot</h1><h4>A Termite plot allows you to explore the different topics in Autonomy.</h4> <p>These are the results after performing LDA on the ~115,000 documents with an EntityTokenizer and n=10</p></div>
 
                 {{ div | safe }}
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='termite/jquery.min.js') }}"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.min.js"></script>
+    <script src="{{ url_for('static', filename='termite/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='termite/angular.min.js') }}"></script>
 
 
     </body>
